@@ -1,0 +1,5 @@
+/* Importação dos estilos do tailwind para o projeto */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
