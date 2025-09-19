@@ -11,8 +11,8 @@ import taskRoutes from "./src/routes/taskRoutes.js"
 // Importa as rotas de autenticação
 import authRoutes from "./src/routes/authRoutes.js";
 
-// Todas as rotas de api/tasks que exigem token
-app.use("/api/tasks", authMiddleware, taskRoutes)
+// // Todas as rotas de api/tasks que exigem token
+// app.use("/api/tasks", authMiddleware, taskRoutes)
 
 // Configuração DOTENV para ler as variáveis do ambiente
 dotenv.config();
@@ -26,6 +26,9 @@ app.use(express.json()); // permite receber JSON no body
 
 // Rotas
 app.use("/api/auth", authRoutes);
+
+//Rotas de tarefas (protegidas por middleware)
+app.use("/api/tasks", taskRoutes);
 
 // Rota inicial para teste
 app.get("/", (req, res) => {

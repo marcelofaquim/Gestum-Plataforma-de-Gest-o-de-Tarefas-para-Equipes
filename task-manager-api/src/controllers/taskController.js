@@ -1,6 +1,12 @@
-//Importaçã do modelo de tarefas
-
+//Importação do modelo de tarefas
 import Task from "../models/Task.js";
+
+/**
+ * 
+ * @desc Lista todas as tarefas do usuario autenticado 
+ * @route GET /api/tasks
+ * @access Privado (somente com token válido) 
+ */
 
 //Função criada para listar todas as tarefas do usuario
 export const getTasks = async (req, res) => {
@@ -12,9 +18,15 @@ export const getTasks = async (req, res) => {
         const tasks = await Task.find({ user: userId});
 
         // Retorna as tarefas encontradas
-        res.status(200).json(tasks);
-    } catch (err) {
-        res.status(500).json({ error: "Erro ao buscar tarefas" });
+        res.status(200).json({
+            message: "Tarefas carregada com sucesso",
+            tasks
+    });
+    } catch (error) {
+          res.status(500).json
+          ({ error: "Erro ao buscar tarefas", 
+            error: error.message
+      });
     }
 };
 
@@ -54,7 +66,7 @@ export const updateTask = async (req, res) => {
         const updateTask = await Task.findOneAndUpdate(
             { _id: id, user: req.user.id }, // Garante que só o dono pode atualizar
             req.body, //Os campos a serem atualizados
-            { new: true } //retorna a versão atualizada
+            { new: true, runValidators: true } //retorna a versão atualizada
         );
 
         if (!updateTask) {
@@ -73,13 +85,16 @@ export const deleteTask = async (req, res) => {
     try {
     const { id } = req.params;
 
+    console.log("Tentando deletar a tarefa com ID:", id);
+    console.log("Usuario autenticado:", req.user.id);
+
     //Busca e remove a tarefa que pertece ao usuario
-    const deleteTask = await Task.findOneAndDelete({
+    const taskDeletada = await Task.findOneAndDelete({
         _id: id,
         user: req.user.id,
     });
 
-    if (!deleteTask) {
+    if (!taskDeletada) {
         return res.status(404).json({ error: "Tarefa não encontrada" });
     }
 
