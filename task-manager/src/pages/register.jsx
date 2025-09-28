@@ -1,75 +1,111 @@
-//Tela de Cadastro
+// Tela de Cadastro
 
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { AuthLayout } from "../components";
+import axios from "axios";
 
-export default function Register() {
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+function Register() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-const handleSubmit = (e) => {
+  const navigate = useNavigate();
+
+  // Função chamada ao enviar o formulário
+  const handleRegister = async (e) => {
     e.preventDefault();
-    console.log("Cadastro com:", name, email, password);
 
-};
+    try {
+      // Chamada para a API de registro
+      const res = await axios.post("http://127.0.0.1:5000/api/auth/register", {
+        name,
+        email,
+        password,
+      });
 
-return (
-    <AuthLayout title="Criar conta">
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-                <label className="block text-sm font-medium text-gray-700">Nome</label>
-                <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Digite seu nome completo"
-                    required
-                    />
-            </div>
+      alert("Usuário registrado com sucesso! Agora faça o login.");
+      console.log("Registro bem-sucedido: ", res.data);
 
+      navigate("/"); // Redireciona para a página de login
 
-            <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
-                <input
-                    type="email"
-                    className="mt-1 w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={email}  
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Digite seu e-mail"
-                    required
-                    />
-            </div>
+    } catch (error) {
+      console.error("Erro ao registrar o usuário: ", error );
 
+      if (error.response) {
+        console.error("Resposta da API: ", error.response.data);
+        alert("Erro ao resgistrar: " + (error.response.data.message || JSON.stringify(error.response.data)));
+      }else if (error.request) {
+        console.error("Nenhuma resposta do servidor:", error.request);
+      alert("Erro: API não respondeu. Verifique se o servidor está rodando.");
+    } else {
+      // Erro na configuração da requisição
+      console.error("Erro na configuração:", error.message);
+      alert("Erro inesperado: " + error.message);
+      }
+    }
+  };
 
-            <div>
-                <label className="block text-sm font-medium text-gray-700">Senha</label>
-                <input
-                    type="password"
-                    className="mt-1 w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Crie uma senha"
-                    required
-                   /> 
-            </div>
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-md w-96">
+        <h1 className="text-2xl font-bold mb-6 text-center text-green-600">
+          Gestum - Cadastro
+        </h1>
 
+        <form onSubmit={handleRegister}>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-600">Nome</label>
+            <input
+              type="text"
+              placeholder="Digite seu nome"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+              required
+            />
+          </div>
 
-            <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hiver:bg-blue-700transition-colors"
-            >
-                Cadastrar
-            </button>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-600">Email</label>
+            <input
+              type="email"
+              placeholder="Digite seu email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+              required
+            />
+          </div>
 
-            <p className="text-sm text-center text-gray-600">
-                Já tem conta?{" "}
-                <Link to="/login" className="text-blue-600 hover:underline">Entrar</Link>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-600">Senha</label>
+            <input
+              type="password"
+              placeholder="Digite sua senha"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+              required
+            />
+          </div>
 
-            </p>
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Cadastrar-se
+          </button>
         </form>
-    </AuthLayout>
-);
 
+        <p className="mt-4 text-sm text-center">
+          Já tem uma conta?{" "}
+          <a href="/" className="text-blue-600 hover:underline">
+            Faça login
+          </a>
+        </p>
+      </div>
+    </div>
+  );
 }
+
+export default Register;

@@ -1,70 +1,76 @@
-//Page de login
+//Importações necessarias
+import { useState  } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-import { Link } from "react-router-dom";
-import { useState } from "react";
-import { AuthLayout } from "../components";
-
-export default function Login() {
+function Login() {
+    //GUardar email e senha digitado pelo usuario
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
+    //Hook do react-router-dom para redirecionar
+    const navigate = useNavigate();
 
+    //Função que será executada ao clicar em "Entrar"
+    const handleLogin = async (e) =>{
+        e.preventDefault(); //evita refresh da pagina
 
-//função de envio (não foi feito a integração com o back-end)
-const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Login com:",email, password);
+        try {
+            //Faz requisição para nosso back-end
+            const res = await axios.post("http://localhost:5000/api/auth/login", {
+                email,
+                password
+            });
 
-};
+            //Salva o token no LocalStorage para usar depois nas rotas protegidas
+            localStorage.setItem("token", res.data.token);
 
+            //Redireciona para o dashboard
+            navigate("/dashboard");
 
-return (
-    <AuthLayout title="Entrar na Plataforma">
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-                <label className="block text-sm font-medium text-gray-700">E-mail</label>
-                <input
-                    type="email"
-                    className="mt-l w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-nome focus:ring-2 focus:ring-blue-500"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Digite sua senha"
-                    required
-                    />
+        } catch (error) {
+                alert(" Erro ao fazer login. Verifique suas credenciais!")
+        }
+    };
+
+    return (
+        <div className="flex-items-center justify-center min-h-screen bg-gray-100">
+            <div className="bg-white p-9 rounded-lg shadow-md w-96">
+               <h1 className="text-2l font-bold mb-6 text-center text-blue-600">Gestum - Login</h1>
+                <form onSubmit={handleLogin}>
+                    <div className="mb-4">
+                        <label className="block mb-1 text-gray-600">Email</label>
+                        <input
+                            type="email"
+                            placeholder="Digite seu email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:right-2 focus:ring-blue-400"
+                            required
+                        />    
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block mb-1 text-gray-600">Senha</label>
+                        <input
+                            type="password"
+                            placeholder="Digite seu senha"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:right-2 focus:ring-blue-400"
+                            required
+                        />    
+                    </div>
+                    <button
+                        type="submit"
+                        className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+                    >
+                        Entrar
+                    </button>
+                </form>
             </div>
-
-
-            <div>
-          <label className="block text-sm font-medium text-gray-700">Senha</label>
-          <input
-            type="password"
-            className="mt-1 w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Digite sua senha"
-            required
-          />
         </div>
-
-            <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-                    Entrar
-                </button>
-
-                <p className="text-sm text-center text-gray-600">
-                        Não tem uma conta?{" "}
-                    <Link to="/register" className="text-blue-600 hover:underline">Cadastra-se</Link>
-
-                </p>
-        </form>
-    </AuthLayout>
-);
+    );
 }
 
-
-
-
-
-//useState → armazena valores digitados nos campos.
-
+export default Login;

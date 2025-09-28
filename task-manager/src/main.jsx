@@ -15,7 +15,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
         {/* Rotas principais */}
         <Route path='/login' element={<Login />} />
-        <Route path='/register' element={<register />} />
+        <Route path='/register' element={<Register />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

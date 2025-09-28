@@ -1,9 +1,25 @@
+import { BrowserRouter as Router, Routes, Route} from "react-router-dom"
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+
+
 function App() {
   return(
-    <div className="flex justify-center intems-center h-screen bg-gray-100">
-      <h1 className="text-3x1 font-bold text-bold text-blue-600">Plataforma de tarefas</h1>
-    </div>
+    <Router>
+      <Routes>
+        {/*Pagina de Login */}
+        <Route path="/" element={<Login />} />
+
+        {/* {Pagina de cadastro} */}
+        <Route path="/register" element={<Register />} />
+
+
+        </Routes>
+      </Router>
   );
 }
+
+console.log("Register importado:", Register);
+
 
 export default App;

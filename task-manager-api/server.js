@@ -21,7 +21,11 @@ dotenv.config();
 const app = express();
 
 // Configurações básicas
-app.use(cors()); // permite o acesso de outros domínios
+app.use(cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+})); // permite o acesso de outros domínios
 app.use(express.json()); // permite receber JSON no body
 
 // Rotas
