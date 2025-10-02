@@ -25,10 +25,13 @@ function Login() {
             //Salva o token no LocalStorage para usar depois nas rotas protegidas
             localStorage.setItem("token", res.data.token);
 
+            alert("Login realizado com sucesso!");
+
             //Redireciona para o dashboard
             navigate("/dashboard");
 
         } catch (error) {
+            console.error("Erro ao logar:", error)
                 alert(" Erro ao fazer login. Verifique suas credenciais!")
         }
     };
@@ -61,6 +64,7 @@ function Login() {
                             required
                         />    
                     </div>
+                    
                     <button
                         type="submit"
                         className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
