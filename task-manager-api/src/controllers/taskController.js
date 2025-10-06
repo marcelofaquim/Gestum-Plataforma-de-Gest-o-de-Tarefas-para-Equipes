@@ -1,105 +1,112 @@
-//Importação do modelo de tarefas
-import Task from "../models/Task.js";
+import Task from "../models/taskModel.js";
 
-/**
- * 
- * @desc Lista todas as tarefas do usuario autenticado 
- * @route GET /api/tasks
- * @access Privado (somente com token válido) 
- */
-
-//Função criada para listar todas as tarefas do usuario
+// 📥 [GET] Buscar todas as tarefas do usuário logado
 export const getTasks = async (req, res) => {
-    try {
-        // O ID do usuarui vem pelo token passando pelo middleware
-        const userId = req.user.id;
+  try {
+    const tasks = (await Task.find({ user: req.user.id })).toSorted({ createAt: -1}); // busca apenas as tarefas do usuário logado
+    res.status(200).json(tasks);
 
-        //Busca todas as taredas no banco associados pelo usuario logado
-        const tasks = await Task.find({ user: userId});
-
-        // Retorna as tarefas encontradas
-        res.status(200).json({
-            message: "Tarefas carregada com sucesso",
-            tasks
-    });
-    } catch (error) {
-          res.status(500).json
-          ({ error: "Erro ao buscar tarefas", 
-            error: error.message
-      });
+    if (!task || tasks.lenght === 0) {
+      return res.status(200).json([]);
     }
+
+    //Retorna as tarefas encontradas
+    res.status(200).json(tasks);
+
+  } catch (err) {
+    console.error("Erro ao buscar tarefas:", err);
+    res.status(500).json({ message: "Erro ao buscar tarefas" });
+  }
 };
 
-// Função: Criar uma nova tarefa
-
+// 📤 [POST] Criar nova tarefa
 export const createTask = async (req, res) => {
-    try {
-        //Capturar os dados do corpo ela requisição vinda pelo frontend ou postman
-        const { title, description } = req.body;
+  try {
+    const { title, description } = req.body;
 
-        // Criar uma noca tarefa associada ao usuario logado
-        const newTask = new Task({
-            title,
-            description,
-            user: req.user.id, // vincula ao usuarui autenticado
-        });
-
-        //Salva no banco de dados
-        await newTask.save();
-
-        //Retorna a tarefa criada
-        res.status(201).json(newTask);
-    } catch (err) {
-        res.status(500).json({ error: "Erro ao criar a tarefa" });
+    if (!title || !description) {
+      return res.status(400).json({ message: "Preencha todos os campos!" });
     }
+
+    const newTask = new Task({
+      title,
+      description,
+      user: req.user.id, // o ID vem do token decodificado
+    });
+
+    const savedTask = await newTask.save();
+    res.status(201).json(savedTask);
+  } catch (err) {
+    console.error("Erro ao criar tarefa:", err);
+    res.status(500).json({ message: "Erro ao criar tarefa" });
+  }
 };
 
-
-//Função atualizar uma tarefa
-
-export const updateTask = async (req, res) => {
-    try {
-        //Pega o ID da tarefa da URL
-        const { id } = req.params;
-
-        // Busca e atualiza a tarefa que pertece ao usuario logado
-        const updateTask = await Task.findOneAndUpdate(
-            { _id: id, user: req.user.id }, // Garante que só o dono pode atualizar
-            req.body, //Os campos a serem atualizados
-            { new: true, runValidators: true } //retorna a versão atualizada
-        );
-
-        if (!updateTask) {
-            return res.status(404).json({ error: "Tarefa não encontrada" });
-        }
-
-        res.status(200).json(updateTask);
-    } catch (err) {
-        res.status(500).json({ error: "Erro de atualização de tarefas"})
-    }
-};
-
-// Função Deletar tarefa
-
+// 🗑️ [DELETE] Excluir uma tarefa pelo ID
 export const deleteTask = async (req, res) => {
-    try {
+  try {
     const { id } = req.params;
 
-    console.log("Tentando deletar a tarefa com ID:", id);
-    console.log("Usuario autenticado:", req.user.id);
+    const task = await Task.findById(id);
+    if (!task) return res.status(404).json({ message: "Tarefa não encontrada" });
 
-    //Busca e remove a tarefa que pertece ao usuario
-    const taskDeletada = await Task.findOneAndDelete({
-        _id: id,
-        user: req.user.id,
-    });
-
-    if (!taskDeletada) {
-        return res.status(404).json({ error: "Tarefa não encontrada" });
+    // garante que o usuário só possa excluir as próprias tarefas
+    if (task.user.toString() !== req.user.id) {
+      return res.status(401).json({ message: "Acesso não autorizado" });
     }
 
-        res.status(200).json({ message: "Tarefa deletada com sucesso" });
-    } catch (err) {
-        res.status(500).json({ error: "Erro ao deletar tarefa" });
-    }
+    await task.deleteOne();
+    res.status(200).json({ message: "Tarefa excluída com sucesso" });
+  } catch (err) {
+    console.error("Erro ao excluir tarefa:", err);
+    res.status(500).json({ message: "Erro ao excluir tarefa" });
+  }
+  
 };
+
+// ✏️ [PUT] Atualizar tarefa
+export const updateTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description } = req.body;
+
+    const task = await Task.findById(id);
+
+    if (!task) return res.status(404).json({ message: "Tarefa não encontrada" });
+    if (task.user.toString() !== req.user.id)
+      return res.status(401).json({ message: "Acesso não autorizado" });
+
+    task.title = title || task.title;
+    task.description = description || task.description;
+
+    const updatedTask = await task.save();
+    res.status(200).json(updatedTask);
+  } catch (err) {
+    console.error("Erro ao atualizar tarefa:", err);
+    res.status(500).json({ message: "Erro ao atualizar tarefa" });
+  }
+
+};
+
+// 🌀 [PATCH] Atualizar status da tarefa
+export const updateTaskStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const task = await Task.findById(id);
+    if (!task) return res.status(404).json({ message: "Tarefa não encontrada" });
+
+    if (task.user.toString() !== req.user.id)
+      return res.status(401).json({ message: "Acesso não autorizado" });
+
+    task.status = status;
+    const updatedTask = await task.save();
+    res.status(200).json(updatedTask);
+  } catch (err) {
+    console.error("Erro ao atualizar status:", err);
+    res.status(500).json({ message: "Erro ao atualizar status" });
+  }
+};
+
+

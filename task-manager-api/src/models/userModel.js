@@ -18,11 +18,9 @@ const userSchemas = new mongoose.Schema(
             type: String,
             required: true,
         },
-    },
+    });
 
-    {
-        timestamps: true, //cria automaticamente creadAt e updateAt
-    }
-);
+    const User = mongoose.model("User", userSchemas);
 
-export default mongoose.model("User", userSchemas);
+
+export default User;
